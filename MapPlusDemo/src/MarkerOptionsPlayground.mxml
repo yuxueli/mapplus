@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml" 
+				xmlns:maps="com.mapplus.maps.*" layout="absolute" 
+				width="100%" height="100%" minWidth="800" minHeight="600">
+	<mx:Panel title="MapPlus API Demo" width="100%" height="100%">
+		<mx:HDividedBox width="100%" height="100%">
+			<mx:Grid id="myGrid" height="100%">
+				<mx:GridRow id="row1">
+					<mx:GridItem>
+						<mx:Label text="draggable"/>
+					</mx:GridItem>
+					<mx:GridItem>
+						<mx:CheckBox id="form_draggable" selected="false"/>
+					</mx:GridItem>
+				</mx:GridRow>
+				<mx:GridRow>
+					<mx:GridItem>
+						<mx:Label text="fillStyle"/>
+					</mx:GridItem>
+					<mx:GridItem>
+						<mx:Label text="alpha"/>
+						<mx:TextInput id="form_fillStyle_alpha" text="1.0" width="40"/>
+					</mx:GridItem>
+				</mx:GridRow>
+				<mx:GridRow>
+					<mx:GridItem>
+					</mx:GridItem>
+					<mx:GridItem>
+						<mx:Label text="color"/>
+						<mx:ColorPicker id="form_fillStyle_color" selectedColor="0xFF766A"/>
+					</mx:GridItem>
+				</mx:GridRow>
+				<mx:GridRow>
+					<mx:GridItem>
+						<mx:Label text="gravity"/>
+					</mx:GridItem>
+					<mx:GridItem>
+						<mx:TextInput id="form_gravity" text=".8" width="40"/>
+					</mx:GridItem>
+				</mx:GridRow>
+				<mx:GridRow>
+					<mx:GridItem>
+						<mx:Label text="hasShadow"/>
+					</mx:GridItem>
+					<mx:GridItem>
+						<mx:CheckBox id="form_hasShadow" selected="true"/>
+					</mx:GridItem>
+				</mx:GridRow>
+				<mx:GridRow>
+					<mx:GridItem>
+						<mx:Label text="icon"/>
+					</mx:GridItem>
+					<mx:GridItem>
+						<mx:ComboBox id="form_icon" dataProvider = "{ICON_IMAGES}"/>
+					</mx:GridItem>
+				</mx:GridRow>
+				<mx:GridRow>
+					<mx:GridItem>
+						<mx:Label text="iconAlignment"/>
+					</mx:GridItem>
+					<mx:GridItem>
+						<mx:ComboBox id="form_iconAlignmentVertical" dataProvider = "{ICON_ALIGNMENTS_VERTICAL}"/>
+					</mx:GridItem>
+				</mx:GridRow>
+				<mx:GridRow>
+					<mx:GridItem>
+					</mx:GridItem>
+					<mx:GridItem>
+						<mx:ComboBox id="form_iconAlignmentHorizontal" dataProvider = "{ICON_ALIGNMENTS_HORIZONTAL}"/>
+					</mx:GridItem>
+				</mx:GridRow>
+				<mx:GridRow>
+					<mx:GridItem>
+						<mx:Label text="iconOffset"/>
+					</mx:GridItem>
+					<mx:GridItem>
+						<mx:Label text="x"/>
+						<mx:TextInput id="form_iconOffsetX" width="40"/>
+						<mx:Label text="y"/>
+						<mx:TextInput id="form_iconOffsetY" width="40"/>
+					</mx:GridItem>
+				</mx:GridRow>
+				<mx:GridRow>
+					<mx:GridItem>
+						<mx:Label text="label"/>
+					</mx:GridItem>
+					<mx:GridItem>
+						<mx:TextInput id="form_label" width="40"/>
+					</mx:GridItem>
+				</mx:GridRow>
+				<mx:GridRow>
+					<mx:GridItem>
+						<mx:Label text="labelFormat"/>
+					</mx:GridItem>
+					<mx:GridItem>
+						<mx:Label text="bold"/>
+						<mx:CheckBox id="form_labelFormat_bold" selected="false"/>
+					</mx:GridItem>
+				</mx:GridRow>
+				<mx:GridRow>
+					<mx:GridItem>
+					</mx:GridItem>
+					<mx:GridItem>
+						<mx:Label text="color"/>
+						<mx:ColorPicker id="form_labelFormat_color" selectedColor="0x000000"/>
+					</mx:GridItem>
+				</mx:GridRow>
+				<mx:GridRow>
+					<mx:GridItem>
+						<mx:Label text="radius"/>
+					</mx:GridItem>
+					<mx:GridItem>
+						<mx:TextInput id="form_radius" text="9" width="40"/>
+					</mx:GridItem>
+				</mx:GridRow>
+				<mx:GridRow>
+					<mx:GridItem>
+						<mx:Label text="strokeStyle"/>
+					</mx:GridItem>
+					<mx:GridItem>
+						<mx:Label text="alpha"/>
+						<mx:TextInput id="form_strokeStyle_alpha" text="1.0" width="40"/>
+					</mx:GridItem>
+				</mx:GridRow>
+				<mx:GridRow>
+					<mx:GridItem>
+					</mx:GridItem>
+					<mx:GridItem>
+						<mx:Label text="color"/>
+						<mx:ColorPicker id="form_strokeStyle_color" selectedColor="0x000000"/>
+					</mx:GridItem>
+				</mx:GridRow>
+				<mx:GridRow>
+					<mx:GridItem>
+						<mx:Label text=""/>
+					</mx:GridItem>
+					<mx:GridItem>
+						<mx:Label text="thickness"/>
+						<mx:TextInput id="form_strokeStyle_thickness" text="2" width="40"/>
+					</mx:GridItem>
+				</mx:GridRow>
+				<mx:GridRow>
+					<mx:GridItem>
+						<mx:Label text="tooltip"/>
+					</mx:GridItem>
+					<mx:GridItem>
+						<mx:TextInput id="form_tooltip"/>
+					</mx:GridItem>
+				</mx:GridRow>
+				<mx:GridRow>
+					<mx:GridItem colSpan="2">
+						<mx:Button id="submitButton" label="Go!" click="processForm(event);"/>
+					</mx:GridItem>
+				</mx:GridRow>
+			</mx:Grid>
+			<maps:Map id="map" 
+				mapevent_mapready="onMapReady"
+				width="100%" height="100%"/>
+		</mx:HDividedBox>
+	</mx:Panel>
+	<mx:Script>
+		<![CDATA[
+			import com.mapplus.maps.InfoWindowOptions;
+			import com.mapplus.maps.LatLng;
+			import com.mapplus.maps.Map;
+			import com.mapplus.maps.MapEvent;
+			import com.mapplus.maps.MapMouseEvent;
+			import com.mapplus.maps.MapType;
+			import com.mapplus.maps.controls.MapTypeControl;
+			import com.mapplus.maps.controls.ZoomControl;
+			import com.mapplus.maps.overlays.Marker;
+			import com.mapplus.maps.overlays.MarkerOptions;
+			import com.mapplus.maps.styles.FillStyle;
+			import com.mapplus.maps.styles.StrokeStyle;
+			
+			import flash.text.TextFormat;
+			
+			private var marker:Marker;
+			
+			[Embed(source="assets/images/purple-dot.png")] private var purpleIcon:Class;
+			[Embed(source="assets/images/blue-dot.png")] private var blueIcon:Class;
+			[Embed(source="assets/images/green-dot.png")] private var greenIcon:Class;
+			
+			public var ICON_IMAGES:Array = [
+				{label: "none", data: null},
+				{label: "purple-dot.png", data: new purpleIcon()},
+				{label: "blue-dot.png", data: new blueIcon()},
+				{label: "green-dot.png", data: new greenIcon()}];
+			
+			public var ICON_ALIGNMENTS_VERTICAL:Array = [
+				{label: "ALIGN_TOP", data: MarkerOptions.ALIGN_TOP},
+				{label: "ALIGN_VERTICAL_CENTER", data: MarkerOptions.ALIGN_VERTICAL_CENTER},
+				{label: "ALIGN_VERTICAL_CENTER", data: MarkerOptions.ALIGN_VERTICAL_CENTER}
+			];
+			
+			public var ICON_ALIGNMENTS_HORIZONTAL:Array = [
+				{label: "ALIGN_LEFT", data: MarkerOptions.ALIGN_LEFT},
+				{label: "ALIGN_RIGHT", data: MarkerOptions.ALIGN_RIGHT},
+				{label: "ALIGN_HORIZONTAL_CENTER", data: MarkerOptions.ALIGN_HORIZONTAL_CENTER}
+			];
+			
+			private function onMapReady(event:Event):void {
+				map.enableScrollWheelZoom();
+				map.enableContinuousZoom();
+				map.setCenter(new LatLng(39.911842984749946, 116.400146484375),
+					12,
+					MapType.NORMAL_MAP_TYPE);
+				map.addControl(new MapTypeControl());
+				map.addControl(new ZoomControl());
+			}
+			
+			private function processForm(event:Event):void {
+				if (marker) { map.removeOverlay(marker); }
+				var markerOptions:MarkerOptions = new MarkerOptions({});
+				markerOptions.draggable = form_draggable.selected;
+				
+				var fillStyle:FillStyle = new FillStyle();
+				fillStyle.alpha = Number(form_fillStyle_alpha.text);
+				fillStyle.color = form_fillStyle_color.selectedColor;
+				markerOptions.fillStyle = fillStyle;
+				
+				markerOptions.gravity = Number(form_gravity.text);
+				markerOptions.hasShadow = form_hasShadow.selected;
+				markerOptions.icon = form_icon.selectedItem.data;
+				markerOptions.iconAlignment = form_iconAlignmentHorizontal.selectedItem.data +  form_iconAlignmentVertical.selectedItem.data;
+				markerOptions.iconOffset = new Point(Number(form_iconOffsetX.text), Number(form_iconOffsetY.text));
+				
+				if (form_label.text != "") markerOptions.label = form_label.text;
+				
+				var labelFormat:TextFormat = new TextFormat();
+				labelFormat.bold = form_labelFormat_bold.selected;
+				labelFormat.color = form_labelFormat_color.selectedColor;
+				markerOptions.labelFormat = labelFormat;
+				
+				markerOptions.radius = Number(form_radius.text);
+				
+				var strokeStyle:StrokeStyle = new StrokeStyle();
+				strokeStyle.alpha = Number(form_strokeStyle_alpha.text);
+				strokeStyle.color = form_strokeStyle_color.selectedColor;
+				strokeStyle.thickness = Number(form_strokeStyle_thickness.text);
+				markerOptions.strokeStyle = strokeStyle;
+				
+				markerOptions.tooltip = form_tooltip.text;
+				
+				marker = new Marker(map.getCenter(), markerOptions);
+				trace(markerOptions);
+				
+				var infoOptions:InfoWindowOptions = new InfoWindowOptions();
+				infoOptions.title = "我的坐标是";
+				infoOptions.content = marker.getLatLng().toString();
+				//标注拖动时关闭提示框
+				marker.addEventListener(MapMouseEvent.DRAG_START,function(e:Event):void{
+					marker.closeInfoWindow();
+				});
+				//拖动接受时显示提示框
+				marker.addEventListener(MapMouseEvent.DRAG_END,function(e:Event):void{
+					infoOptions.content = marker.getLatLng().toString();
+					marker.openInfoWindow(infoOptions);
+				});
+				//点击标注时显示提示框
+				marker.addEventListener(MapMouseEvent.CLICK, function(e:Event):void {
+					infoOptions.content = marker.getLatLng().toString();
+					marker.openInfoWindow(infoOptions);
+				});
+				
+				map.addOverlay(marker);//在地图上显示这个标注
+				marker.openInfoWindow(infoOptions);//打开对话框
+			}
+		]]>
+	</mx:Script>
+</mx:Application>

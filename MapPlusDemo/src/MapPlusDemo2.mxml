@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<mx:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" 
+			   minWidth="600" minHeight="400"
+			   xmlns:maps="com.mapplus.maps.*">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<!--<maps:Map id="map" width="100%" height="100%" mapevent_mapready="onMapreadyHandler"/>-->
+	<mx:HBox width="100%" height="100%">
+		<s:Panel width="20%" height="100%" title="工具窗口">
+			<mx:Accordion width="100%" height="100%">
+				<s:NavigatorContent label="标注" width="100%" height="100%">
+					<s:Button x="10" y="10" label="在中心标注" id="btnMarker" click="btnMarker_clickHandler(event)"/>
+				</s:NavigatorContent>
+				<s:NavigatorContent label="画线" width="100%" height="100%">
+					<s:Button x="10" y="10" label="在中心画线"/>
+				</s:NavigatorContent>
+				<s:NavigatorContent label="画面" width="100%" height="100%">
+				</s:NavigatorContent>
+			</mx:Accordion>
+		</s:Panel>
+		<s:Panel width="80%" height="100%" title="MapPlus API DEMO">
+			<maps:Map3D xmlns:maps="com.mapplus.maps.*"
+				id="map" width="100%" height="100%" 
+						mapevent_mappreinitialize="map_onMapPreInitialize"
+						mapevent_mapready="onMapreadyHandler"
+						/>
+		</s:Panel>
+	</mx:HBox>
+	<fx:Script>
+		<![CDATA[
+			import com.mapplus.maps.MapType;
+			import com.mapplus.maps.*;
+			import com.mapplus.maps.MapMouseEvent;
+			import com.mapplus.maps.controls.MapTypeControl;
+			import com.mapplus.maps.controls.NavigationControl;
+			import com.mapplus.maps.controls.OverviewMapControl;
+			import com.mapplus.maps.controls.ScaleControl;
+			import com.mapplus.maps.interfaces.IMapType;
+			import com.mapplus.maps.overlays.*;
+			import com.mapplus.maps.geom.Attitude;
+			import com.mapplus.maps.MapOptions;
+			import com.mapplus.maps.View;
+			
+			private var marker:Marker;
+
+			
+			private var centreLatlng:LatLng = new LatLng(39.911842984749946, 116.400146484375);//北京的一个坐标位置。
+			
+			private function map_onMapPreInitialize(event:Event) : void 
+			{
+				map.setInitOptions(new MapOptions({
+					viewMode : View.VIEWMODE_PERSPECTIVE,
+					attitude : new Attitude(0, 0, 0)
+				})); 
+			}	
+			//地图加载完成后执行的方法
+			protected function onMapreadyHandler(event:MapEvent):void
+			{
+				map.enableContinuousZoom();	//启用连续平滑缩放。
+				map.enableScrollWheelZoom();	//启用使用鼠标滚轮缩放。
+				map.addControl(new MapTypeControl());	//供用户在地图类型之间进行切换的按钮。
+				map.addControl(new NavigationControl());//供用户更改地图的各项导航参数，包括缩放级别、中心位置和空间方位角。
+				map.addControl(new ScaleControl());	//比例控件是用于指示当前地图的分辨率和缩放级别的可视指示器。
+				map.addControl(new OverviewMapControl());//鹰眼图
+				
+				map.setCenter(centreLatlng,11);	//设置地图的中心点。
+				
+				marker = new Marker(centreLatlng);	//建立一个标注。
+				map.addOverlay(marker);		//在地图上显示此标注。
+				
+
+				map.setMapType(MapType.MAPABC_MAP_TYPE);	//设置自己的地图可见
+			}
+			protected function btnMarker_clickHandler(event:MouseEvent):void
+			{
+				var markerOptions:MarkerOptions = new MarkerOptions();
+				markerOptions.draggable = true;//设置标注可以拖动
+				
+				//定义一个标注
+				var marker:Marker = new Marker(map.getCenter(),markerOptions);
+				
+				var infoOptions:InfoWindowOptions = new InfoWindowOptions();
+				infoOptions.title = "我的坐标是";
+				infoOptions.content = marker.getLatLng().toString();
+				//标注拖动时关闭提示框
+				marker.addEventListener(MapMouseEvent.DRAG_START,function(e:Event):void{
+					marker.closeInfoWindow();
+				});
+				//拖动接受时显示提示框
+				marker.addEventListener(MapMouseEvent.DRAG_END,function(e:Event):void{
+					marker.openInfoWindow(infoOptions);
+				});
+				//点击标注时显示提示框
+				marker.addEventListener(MapMouseEvent.CLICK, function(e:Event):void {
+					marker.openInfoWindow(infoOptions);
+				});
+				
+				map.addOverlay(marker);//在地图上显示这个标注
+				marker.openInfoWindow(infoOptions);//打开对话框
+			    
+				var i:int=0;
+				
+				for (i=0;i<500;i++ )
+				{
+					var xx:LatLng=new LatLng(map.getCenter().lat()+i*0.001,map.getCenter().lng()+i*0.001);
+					marker = new Marker(xx,markerOptions);
+
+					map.addOverlay(marker);
+				}
+				
+				
+			}
+			
+		]]>
+	</fx:Script>
+</mx:Application>

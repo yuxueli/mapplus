@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:maps="com.mapplus.maps.*"
+			   minWidth="955" minHeight="600">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:Panel width="100%" height="100%" title="FGMap加载天地图数据">
+		<maps:Map id="map" width="100%" height="100%" mapevent_mapready="onMapreadyHandler"/>
+	</s:Panel>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.customTileLayer.*;
+			import com.mapplus.maps.*;
+			import com.mapplus.maps.MapMouseEvent;
+			import com.mapplus.maps.controls.MapTypeControl;
+			import com.mapplus.maps.controls.NavigationControl;
+			import com.mapplus.maps.controls.OverviewMapControl;
+			import com.mapplus.maps.controls.ScaleControl;
+			import com.mapplus.maps.interfaces.IMapType;
+			import com.mapplus.maps.overlays.*;
+
+			private var marker:Marker;
+			
+			private var centreLatlng:LatLng = new LatLng(39.90509127978099,116.39769769279956818);//人民英雄纪念碑。
+			
+			private var tiandituAnno:TiandituTileLayer = null;
+			private var TiandituAnno:TileLayerOverlay = null;
+			//地图加载完成后执行的方法
+			protected function onMapreadyHandler(event:MapEvent):void
+			{
+				map.enableContinuousZoom();	//启用连续平滑缩放。
+				map.enableScrollWheelZoom();	//启用使用鼠标滚轮缩放。
+				map.addControl(new MapTypeControl());	//供用户在地图类型之间进行切换的按钮。
+				map.addControl(new NavigationControl());//供用户更改地图的各项导航参数，包括缩放级别、中心位置和空间方位角。
+				map.addControl(new ScaleControl());	//比例控件是用于指示当前地图的分辨率和缩放级别的可视指示器。
+				
+				var normalMapType:IMapType = MapType.NORMAL_MAP_TYPE;	//定义一个地图类型
+				var tileLayers:Array = new Array();
+				
+				//天地图矢量
+				
+				var tdtemaplTileLayer:TiandituTileLayer = new TiandituTileLayer(normalMapType.getTileSize(),1,18,1)
+				tdtemaplTileLayer.MapType = TiandituTileLayer.EMAP;
+				tileLayers.push(tdtemaplTileLayer); //地图类型
+				var TdtEmapMapType:IMapType = new MapType(tileLayers,new TiandituProjection(18),"矢量");//创建自己的地图类型
+				map.addMapType(TdtEmapMapType);	//增加到地图上
+				
+				tiandituAnno = new TiandituTileLayer(normalMapType.getTileSize(),1,10,1)
+				tiandituAnno.MapType = TiandituTileLayer.ANNO;
+				TiandituAnno = new TileLayerOverlay(tiandituAnno,256,new TiandituProjection(18));//创建自己的地图类型
+				//tileLayers.push(tiandituAnno);
+				//var TdtAnnoMapType:IMapType = new MapType(tileLayers,new TiandituProjection(18),"标注");//创建自己的地图类型
+				//map.addMapType(TdtAnnoMapType);	//增加到地图上
+
+				//天地图影像
+				var tdtimgTileLayer:TiandituTileLayer = new TiandituTileLayer(normalMapType.getTileSize(),1,18,1)
+				tdtimgTileLayer.MapType = TiandituTileLayer.IMG;
+				tileLayers = new Array();
+				tileLayers.push(tdtimgTileLayer); //地图类型
+				var TdtImgMapType:IMapType = new MapType(tileLayers,new TiandituProjection(18),"影像");//创建自己的地图类型
+				map.addMapType(TdtImgMapType);	//增加到地图上
+									
+				map.setMapType(TdtEmapMapType);	//设置自己的地图可见
+				
+				map.addEventListener(MapEvent.MAPTYPE_CHANGED,onMapTypeChanged);
+				
+				map.addOverlay(TiandituAnno);	//加载标注覆盖层
+				
+				//移除原来的地图类型
+//				for(var i:int=0;i < MapType.DEFAULT_MAP_TYPES.length;i++){
+//					map.removeMapType(MapType.DEFAULT_MAP_TYPES[i]);
+//				}
+
+				map.setCenter(centreLatlng,5);	//设置地图的中心点。
+				marker = new Marker(centreLatlng);	//建立一个标注。
+				//map.addOverlay(marker);		//在地图上显示此标注。
+				BindMarker(marker);
+			}
+			
+			private function onMapTypeChanged(e:MapEvent):void {
+				map.removeOverlay(TiandituAnno);
+				if(map.getCurrentMapType().getName() == "矢量"){
+					tiandituAnno = new TiandituTileLayer(256,1,10,1)
+					tiandituAnno.MapType = TiandituTileLayer.ANNO;
+					TiandituAnno = new TileLayerOverlay(tiandituAnno,256,new TiandituProjection(18));
+					map.addOverlay(TiandituAnno);	//加载标注覆盖层
+				}else if(map.getCurrentMapType().getName() == "影像"){
+					tiandituAnno = new TiandituTileLayer(256,1,18,1)
+					tiandituAnno.MapType = TiandituTileLayer.IMGANNO;
+					TiandituAnno = new TileLayerOverlay(tiandituAnno,256,new TiandituProjection(18));
+					map.addOverlay(TiandituAnno);	//加载标注覆盖层
+				}else{
+					map.removeOverlay(TiandituAnno);	//移除标注覆盖层
+				}
+			}
+			
+			private function BindMarker(marker:Marker):void {
+				var markerOptions:MarkerOptions = new MarkerOptions();
+				markerOptions.draggable = true;//设置标注可以拖动
+				
+				//定义一个标注
+				//var marker:Marker = new Marker(map.getCenter(),markerOptions);
+				
+				marker.setOptions(markerOptions);
+				
+				var infoOptions:InfoWindowOptions = new InfoWindowOptions();
+				infoOptions.title = "我的坐标是";
+				infoOptions.content = marker.getLatLng().toString();
+				//标注拖动时关闭提示框
+				marker.addEventListener(MapMouseEvent.DRAG_START,function(e:Event):void{
+					marker.closeInfoWindow();
+				});
+				//拖动接受时显示提示框
+				marker.addEventListener(MapMouseEvent.DRAG_END,function(e:Event):void{
+					infoOptions.content = marker.getLatLng().toString();
+					marker.openInfoWindow(infoOptions);
+				});
+				//点击标注时显示提示框
+				marker.addEventListener(MapMouseEvent.CLICK, function(e:Event):void {
+					infoOptions.content = marker.getLatLng().toString();
+					marker.openInfoWindow(infoOptions);
+				});
+				
+				map.addOverlay(marker);//在地图上显示这个标注
+				marker.openInfoWindow(infoOptions);//打开对话框				
+			}			
+		]]>
+	</fx:Script>
+</s:Application>

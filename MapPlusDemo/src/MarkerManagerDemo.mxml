@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml"
+				layout="absolute">
+	<maps:Map xmlns:maps="com.mapplus.maps.*"
+			  id="map" 
+			  mapevent_mappreinitialize="map_onMapPreInitialize"
+			  mapevent_mapready="onMapReady"
+			  width="100%"
+			  height="100%" sensor="false"/>
+	<mx:Script>
+		<![CDATA[
+			import com.mapplus.maps.InfoWindowOptions;
+			import com.mapplus.maps.LatLng;
+			import com.mapplus.maps.LatLngBounds;
+			import com.mapplus.maps.Map;
+			import com.mapplus.maps.MapEvent;
+			import com.mapplus.maps.MapMouseEvent;
+			import com.mapplus.maps.MapType;
+			import com.mapplus.maps.controls.ZoomControl;
+			import com.mapplus.maps.overlays.Marker;
+			import com.mapplus.maps.overlays.MarkerOptions;
+			import com.mapplus.maps.services.ClientGeocoder;
+			import com.mapplus.maps.services.GeocodingEvent;
+			import com.mapplus.maps.extras.arcgislink.*;
+			import com.mapplus.maps.interfaces.*;
+			import com.mapplus.maps.controls.MapTypeControl;
+			import com.mapplus.maps.controls.NavigationControl;
+			import com.mapplus.maps.controls.ZoomControl;
+			import com.mapplus.maps.controls.OverviewMapControl;
+			import com.mapplus.maps.controls.ScaleControl;
+			import mx.controls.Alert;
+			import com.mapplus.maps.extras.markermanager.*;
+			import com.mapplus.maps.overlays.MarkerOptions;
+			import com.mapplus.maps.geom.Attitude;
+			import com.mapplus.maps.MapOptions;
+			import com.mapplus.maps.View;
+			
+			//private var map:Map;
+			private var marker:Marker;
+			
+			private function getRandomPoint():LatLng {
+				var lat:Number = 32.05 + (Math.random() - 0.5)*14.5;
+				var lng:Number = 118.81 + (Math.random() - 0.5)*26.0;
+				return new LatLng(Math.round(lat*10)/10, Math.round(lng*10)/10);
+			}
+			
+			private function getMarkers(n:int):Array {
+				var batch:Array = new Array();
+				for (var i:Number = 0; i < n; ++i) {
+					batch.push(new Marker(getRandomPoint()));
+				}
+				return batch;
+			}
+			
+			private function map_onMapPreInitialize(event:Event) : void 
+			{
+				map.setInitOptions(new MapOptions({
+					viewMode : View.VIEWMODE_PERSPECTIVE,
+					attitude : new Attitude(0, 0, 0)
+				})); 
+			}	
+			
+			private function onMapReady(event:Event):void {
+				map.addControl(new MapTypeControl());
+				map.addControl(new NavigationControl());
+				map.addControl(new ScaleControl());
+				map.addControl(new OverviewMapControl());//鹰眼图
+				map.enableContinuousZoom();
+				map.enableScrollWheelZoom();
+				
+				map.setCenter(new LatLng(32.0811,118.7722),9);
+				
+				var tiledJ:String='http://202.102.112.27:9001/ArcGIS/rest/services/jiangyou/MapServer';
+				
+				var tiled:String='http://track.bnet.cn:8399/arcgis/rest/services/indsmap0302/MapServer';
+				
+				
+				
+//				ArcGISUtil.addArcGISMap(map, tiled, function(res:ArcGISMapType):void {
+//					map.setMapType(res);
+//				},"集团地图");
+				ArcGISUtil.addArcGISMap(map, tiled, null,"集团地图");
+				
+				//消除叠加
+				var mgr: MarkerManager = new MarkerManager(map, {});
+				mgr.addMarkers(getMarkers(30), 3);
+				
+				mgr.addMarkers(getMarkers(300), 4);
+				mgr.addMarkers(getMarkers(1000), 8);
+				mgr.refresh();
+			}
+		]]>
+	</mx:Script>
+</mx:Application>

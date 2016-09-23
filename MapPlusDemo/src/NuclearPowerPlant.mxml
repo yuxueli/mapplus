@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" 
+			   minWidth="800" minHeight="600" xmlns:maps="com.mapplus.maps.*">
+	<s:layout>
+		<s:BasicLayout/>
+	</s:layout>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	
+	<s:Panel width="100%" height="100%" title="核电站离我们有多远">
+		<maps:Map3D
+			id="map" 
+			width="100%" 
+			height="100%" 
+			mapevent_mappreinitialize="map_onMapPreInitialize"
+			mapevent_mapready="map_mapevent_mapreadyHandler"/>
+	</s:Panel>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.control.CustomIconSprite;
+			import com.control.PlantData;
+			import com.mapplus.maps.*;
+			import com.mapplus.maps.MapMouseEvent;
+			import com.mapplus.maps.controls.MapTypeControl;
+			import com.mapplus.maps.controls.NavigationControl;
+			import com.mapplus.maps.controls.OverviewMapControl;
+			import com.mapplus.maps.controls.ScaleControl;
+			import com.mapplus.maps.interfaces.IMapType;
+			import com.mapplus.maps.overlays.*;
+			import com.mapplus.maps.geom.Attitude;
+			import mx.charts.PieChart;
+			import mx.collections.ArrayCollection;
+			import com.mapplus.maps.geom.Attitude;
+			import com.mapplus.maps.MapOptions;
+			import com.mapplus.maps.View;
+			
+			//import com.mapplus.demo.CityData;
+			import com.mapplus.maps.InfoWindowOptions;
+			import com.mapplus.maps.LatLng;
+			import com.mapplus.maps.LatLngBounds;
+			import com.mapplus.maps.Map;
+			import com.mapplus.maps.MapEvent;
+			import com.mapplus.maps.MapMouseEvent;
+			import com.mapplus.maps.MapMoveEvent;
+			import com.mapplus.maps.MapOptions;
+			import com.mapplus.maps.MapType;
+			import com.mapplus.maps.View;
+			import com.mapplus.maps.controls.MapTypeControl;
+			import com.mapplus.maps.controls.NavigationControl;
+			import com.mapplus.maps.geom.Attitude;
+			import com.mapplus.maps.interfaces.ICamera;
+			import com.mapplus.maps.interfaces.IMapType;
+			import com.mapplus.maps.overlays.Marker;
+			import com.mapplus.maps.overlays.MarkerOptions;
+			import com.mapplus.maps.styles.FillStyle;
+			//import com.mapplus.model.CityDataVo;
+			import com.mapplus.maps.extras.arcgislink.*;
+			import com.mapplus.maps.extras.markermanager.*;
+			
+			private var marker:Marker;
+			
+			private var centreLatlng:LatLng = new LatLng(39.911842984749946, 116.400146484375);//北京的一个坐标位置。
+			
+			private function map_onMapPreInitialize(event:Event) : void 
+			{
+				map.setInitOptions(new MapOptions({
+					viewMode : View.VIEWMODE_PERSPECTIVE,
+					attitude : new Attitude(0, 0, 0)
+				})); 
+			}	
+			
+			protected function map_mapevent_mapreadyHandler(event:MapEvent):void
+			{
+				map.enableContinuousZoom();	//启用连续平滑缩放。
+				map.enableScrollWheelZoom();	//启用使用鼠标滚轮缩放。
+				map.addControl(new MapTypeControl());	//供用户在地图类型之间进行切换的按钮。
+				map.addControl(new NavigationControl());//供用户更改地图的各项导航参数，包括缩放级别、中心位置和空间方位角。
+				map.addControl(new ScaleControl());	//比例控件是用于指示当前地图的分辨率和缩放级别的可视指示器。
+				
+				map.setCenter(centreLatlng,4);	//设置地图的中心点。
+				map.setMapType(MapType.NORMAL_MAP_TYPE);//设置默认为缺省地图
+				
+				showInMap();
+			}
+			
+			
+			
+			private function showInMap():void{
+				var data:ArrayCollection = PlantData.data;
+				var points:Array = PlantData.latlngs;
+				for(var i:int = 0; i < data.length; i++){
+					var p:Object = data[i];
+					trace(i.toString()+','+data.length.toString());
+					var latlng:LatLng = new LatLng(points[i][0],points[i][1]);
+					trace(latlng.toUrlValue());
+					
+					
+					//var ico:greenIcon=new greenIcon();
+					
+					var markerOptions:MarkerOptions = new MarkerOptions();
+					
+					markerOptions.hasShadow=false;
+					markerOptions.tooltip=p.caption;
+					markerOptions.icon=new CustomIconSprite(p.caption,p.Style.id);
+					
+					//下面写法无效,需要找原因
+//					var markerOptions:MarkerOptions = new MarkerOptions({
+//						hasShadow:false,
+//						tooltip:p.caption,
+//						icon: new CustomIconSprite(p.caption,p.Style.id)	//自定义标注，参数为名称和图标样式
+//					});
+					var pMarker:Marker = new Marker(latlng,markerOptions);	//创建标注并指定标注样式
+					
+					map.addOverlay(pMarker);	//在地图上添加样式
+				}
+			}
+		]]>
+	</fx:Script>
+</s:Application>

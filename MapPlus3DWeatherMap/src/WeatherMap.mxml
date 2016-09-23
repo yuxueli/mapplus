@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="800" minHeight="600"
+			   xmlns:maps="com.mapplus.maps.*">
+	<fx:Declarations>
+
+	</fx:Declarations>
+
+	<fx:Style>
+	    TitleWindow
+        {
+            roundedBottomCorners: false;
+			borderAlpha: 0.7;
+            backgroundAlpha: 0.7;
+            dropShadowEnabled: true;
+            borderColor: #9CA299;
+        }		
+	</fx:Style>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.mapplus.demo.CityData;
+			import com.mapplus.maps.InfoWindowOptions;
+			import com.mapplus.maps.LatLng;
+			import com.mapplus.maps.LatLngBounds;
+			import com.mapplus.maps.Map;
+			import com.mapplus.maps.MapEvent;
+			import com.mapplus.maps.MapMouseEvent;
+			import com.mapplus.maps.MapMoveEvent;
+			import com.mapplus.maps.MapOptions;
+			import com.mapplus.maps.MapType;
+			import com.mapplus.maps.View;
+			import com.mapplus.maps.controls.MapTypeControl;
+			import com.mapplus.maps.controls.NavigationControl;
+			import com.mapplus.maps.controls.OverviewMapControl;
+			import com.mapplus.maps.controls.ScaleControl;
+			import com.mapplus.maps.extras.arcgislink.*;
+			import com.mapplus.maps.extras.markermanager.*;
+			import com.mapplus.maps.geom.Attitude;
+			import com.mapplus.maps.interfaces.ICamera;
+			import com.mapplus.maps.interfaces.IMapType;
+			import com.mapplus.maps.overlays.Marker;
+			import com.mapplus.maps.overlays.MarkerOptions;
+			import com.mapplus.maps.styles.FillStyle;
+			import com.mapplus.model.CityDataVo;
+			
+			import local.wx.*;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.Canvas;
+			import mx.events.FlexEvent;
+			import mx.printing.*;
+
+			[Bindable]
+			private var mapTypes:Array;
+			private var currentMapType:Number;
+      		private var myICamera : ICamera;
+      		private var marker : Marker; 
+			
+			[Bindable]
+			private var MapColours:ArrayCollection = new ArrayCollection([{label:"Grayscale"},{label:"Colour"}]);
+			
+			private function map_onMapPreInitialize(event:Event) : void 
+			{
+				map.setInitOptions(new MapOptions({
+					viewMode : View.VIEWMODE_PERSPECTIVE,
+					attitude : new Attitude(0, 0, 0)
+				})); 
+			}			
+			
+			private function map_onMapReady(event:Event) : void 
+			{			
+				intMapType();
+				
+				map.addEventListener(MapEvent.TILES_LOADED_PENDING, tilesLoading);
+				map.addEventListener(MapEvent.TILES_LOADED, tilesLoaded);
+				
+				map.enableScrollWheelZoom();
+				map.enableContinuousZoom();
+				
+				doBWMap(map, false);
+
+				map.setCenter(new LatLng(30.35,114.17), 5);
+				map.addControl(new NavigationControl());
+				map.addControl(new MapTypeControl());
+				map.addControl(new ScaleControl());
+				map.addControl(new OverviewMapControl());//鹰眼图
+//				
+				var tiled:String='http://track.bnet.cn:8399/arcgis/rest/services/indsmap0302/MapServer';
+				ArcGISUtil.addArcGISMap(map, tiled,null,"集团地图");
+
+
+				for each(var cityVo:CityDataVo in CityData.Capital) {
+					var weatherType:String = CityData.WeatherType[int(Math.random() * 11)]
+					createWXMarker(cityVo.latlng,weatherType);
+				}
+	          	
+//				map.addEventListener(MapMouseEvent.CLICK,function(e:MapMouseEvent):void {
+//					map.clearOverlays();
+//					var marker:Marker = new Marker(e.latLng);
+//					map.addOverlay(marker);
+//					var infoOptions:InfoWindowOptions = new InfoWindowOptions();
+//					infoOptions.title = "我的坐标是";
+//					infoOptions.content = e.latLng.toUrlValue(4);
+//					marker.openInfoWindow(infoOptions);
+//				});
+				
+				
+				
+	          	map.flyTo(new LatLng(30.35,114.17), 5, new Attitude(35, 45, 0), 3);	
+				
+				
+				//消除叠加
+//				var mgr: MarkerManager = new MarkerManager(map, {});
+//				mgr.addMarkers(getWeatherMarkers(30), 3);
+//				
+//				mgr.addMarkers(getWeatherMarkers(300), 6);
+//				mgr.addMarkers(getWeatherMarkers(1000), 8);
+//				mgr.refresh();
+	        } 
+
+
+			private function getRandomPoint():LatLng {
+				var lat:Number = 32.05 + (Math.random() - 0.5)*14.5;
+				var lng:Number = 118.81 + (Math.random() - 0.5)*26.0;
+				return new LatLng(Math.round(lat*10)/10, Math.round(lng*10)/10);
+			}
+			
+			private function getWeatherMarkers(n:int):Array {
+				var batch:Array = new Array();
+				for (var i:Number = 0; i < n; ++i) {
+					batch.push(new Marker(getRandomPoint()));
+				}
+				return batch;
+			}
+	        private function tilesLoading(event:MapEvent):void
+	        {	        
+	        	lblLoading.setStyle("color", "0xFF0000");
+	        	lblLoading.text = "Mapping tiles are loading...";
+	        	lblLoading.validateNow();
+	        }
+	        
+	        private function tilesLoaded(event:MapEvent):void
+	        {
+	        	lblLoading.setStyle("color", "0x00FF00");
+	        	lblLoading.text = "Mapping tiles are loaded";
+	        	lblLoading.validateNow();		
+	        }
+	        
+		    public function createWXMarker(latlng:LatLng, type:String): void 
+		    {
+		    	var options:MarkerOptions;
+		    	
+		    	if (type == "Cloudy")
+		    	{
+		    		options = new MarkerOptions({icon: new local.wx.Cloudy(), 
+		    									 draggable: false,
+		    									 clickable: false, 
+		    									 gravity: 2, 
+		    									 distanceScaling: true, 
+		    									 iconAlignment:MarkerOptions.ALIGN_HORIZONTAL_CENTER + MarkerOptions.ALIGN_VERTICAL_CENTER});	
+		    	}
+		    	else if (type == "Partly Cloudy")
+		    	{
+    				options = new MarkerOptions({icon: new local.wx.PartlyCloudy(), 
+		    									 draggable: false,
+		    									 clickable: false,  
+		    									 gravity: 2, 
+		    									 distanceScaling: true, 
+		    									 iconAlignment:MarkerOptions.ALIGN_HORIZONTAL_CENTER + MarkerOptions.ALIGN_VERTICAL_CENTER});
+		    	}
+		    	else if (type == "Fog Black")
+		    	{
+    				options = new MarkerOptions({icon: new local.wx.FogBlack(), 
+		    									 draggable: false,
+		    									 clickable: false, 
+		    									 gravity: 2, 
+		    									 distanceScaling: true, 
+		    									 iconAlignment:MarkerOptions.ALIGN_HORIZONTAL_CENTER + MarkerOptions.ALIGN_VERTICAL_CENTER});
+		    	}
+		    	else if (type == "Fog White")
+		    	{
+    				options = new MarkerOptions({icon: new local.wx.FogWhite(), 
+		    									 draggable: false,
+		    									 clickable: false,  
+		    									 gravity: 2, 
+		    									 distanceScaling: true, 
+		    									 iconAlignment:MarkerOptions.ALIGN_HORIZONTAL_CENTER + MarkerOptions.ALIGN_VERTICAL_CENTER});
+		    	}
+		    	else if (type == "Hail")
+		    	{
+    				options = new MarkerOptions({icon: new local.wx.Hail(), 
+		    									 draggable: false,
+		    									 clickable: false,  
+		    									 gravity: 2, 
+		    									 distanceScaling: true, 
+		    									 iconAlignment:MarkerOptions.ALIGN_HORIZONTAL_CENTER + MarkerOptions.ALIGN_VERTICAL_CENTER});
+		    	}
+		    	else if (type == "Heavy Rain")
+		    	{
+    				options = new MarkerOptions({icon: new local.wx.HeavyRain(), 
+		    									 draggable: false,
+		    									 clickable: false,  
+		    									 gravity: 2, 
+		    									 distanceScaling: true, 
+		    									 iconAlignment:MarkerOptions.ALIGN_HORIZONTAL_CENTER + MarkerOptions.ALIGN_VERTICAL_CENTER});
+		    	}
+		    	else if (type == "Light Rain")
+		    	{
+    				options = new MarkerOptions({icon: new local.wx.LightRain(), 
+		    									 draggable: false,
+		    									 clickable: false,  
+		    									 gravity: 2, 
+		    									 distanceScaling: true, 
+		    									 iconAlignment:MarkerOptions.ALIGN_HORIZONTAL_CENTER + MarkerOptions.ALIGN_VERTICAL_CENTER});
+		    	}
+		    	else if (type == "Lightning")
+		    	{
+    				options = new MarkerOptions({icon: new local.wx.Lightning(), 
+		    									 draggable: false,
+		    									 clickable: false,  
+		    									 gravity: 2, 
+		    									 distanceScaling: true, 
+		    									 iconAlignment:MarkerOptions.ALIGN_HORIZONTAL_CENTER + MarkerOptions.ALIGN_VERTICAL_CENTER});
+		    	}
+		    	else if (type == "Sleet")
+		    	{
+    				options = new MarkerOptions({icon: new local.wx.Sleet(), 
+		    									 draggable: false,
+		    									 clickable: false,  
+		    									 gravity: 2, 
+		    									 distanceScaling: true, 
+		    									 iconAlignment:MarkerOptions.ALIGN_HORIZONTAL_CENTER + MarkerOptions.ALIGN_VERTICAL_CENTER});
+		    	}
+		    	else if (type == "Snow")
+		    	{
+    				options = new MarkerOptions({icon: new local.wx.Snow(), 
+		    									 draggable: false,
+		    									 clickable: false,  
+		    									 gravity: 2, 
+		    									 distanceScaling: true, 
+		    									 iconAlignment:MarkerOptions.ALIGN_HORIZONTAL_CENTER + MarkerOptions.ALIGN_VERTICAL_CENTER});
+		    	}
+		    	else if (type == "Sunny")
+		    	{
+    				options = new MarkerOptions({icon: new local.wx.Sunny(), 
+		    									 draggable: false,
+		    									 clickable: false,  
+		    									 gravity: 2, 
+		    									 distanceScaling: true, 
+		    									 iconAlignment:MarkerOptions.ALIGN_HORIZONTAL_CENTER + MarkerOptions.ALIGN_VERTICAL_CENTER});
+		    	}		    			    			    			    			    			    			    	
+		        var markerLocal:Marker = new Marker(latlng, options);
+		        map.addOverlay(markerLocal);
+		    } 
+	        
+			private function doBWMap(myMap:Map, doBW:Boolean):void 
+			{
+				var s1:Sprite = map.getChildAt(1) as Sprite;
+              	//var targetObject:Sprite = s1.getChildAt(0) as Sprite;
+				var matrix:Array = new Array();
+				
+				if (doBW)
+				{
+					// Black & White Object
+					matrix = matrix.concat([0.36577734829179775,0.6012741339631636,0.14454173149981608,0,0]); // red
+			        matrix = matrix.concat([0.34975509588844284,0.6103753117891721,0.1424311139968783,0,0]); // green
+			        matrix = matrix.concat([0.3484091095395311,0.6023337490798816,0.16297410831863204,0,0]); // blue
+			        matrix = matrix.concat([0,0,0,0.9,0]);   // alpha
+			        //targetObject.filters = [new ColorMatrixFilter(matrix)];	
+				}
+				else
+				{
+					// Reset to colour
+					matrix = matrix.concat([1, 0, 0, 0, 0]); // red
+			        matrix = matrix.concat([0, 1, 0, 0, 0]); // green
+			        matrix = matrix.concat([0, 0, 1, 0, 0]); // blue
+			        matrix = matrix.concat([0, 0, 0, 1, 0]); // alpha
+			        //targetObject.filters = [new ColorMatrixFilter(matrix)];			
+				}
+			}
+			
+			private function intMapType():void
+			{
+				mapTypes = new Array(MapType.NORMAL_MAP_TYPE, MapType.SATELLITE_MAP_TYPE, MapType.HYBRID_MAP_TYPE, MapType.PHYSICAL_MAP_TYPE);
+		
+				if (!currentMapType) 
+					currentMapType = 1;
+		
+			}
+
+			private function mapTypeChangeHandler():void
+			{
+				//currentMapType = mapType.selectedIndex;
+				//map.setMapType(IMapType(mapTypes[currentMapType]));
+			}
+
+			private function getMapTypeLabels(item:Object):String
+			{
+				return IMapType(item).getName();
+			} 	   
+			
+			private function doCanvasPrint(myMap:Map3D, myCanvas:Canvas, printBitmap:Boolean):void 
+			{
+				var myWidth   : Number;
+				var myHeight  : Number;
+				var myScaleX  : Number;
+				var myScaleY  : Number;
+				
+				// Record current dimensions
+				myWidth = myCanvas.width;
+				myHeight = myCanvas.height;
+				myScaleX = myCanvas.scaleX;
+				myScaleY = myCanvas.scaleY;
+		
+				var pj:PrintJob = new PrintJob();
+				var po:PrintJobOptions = new PrintJobOptions();
+				po.printAsBitmap = printBitmap;
+					
+				if (pj.start() == true) 
+				{		
+					// Scale it
+					myCanvas.scaleX = 0.6;
+					myCanvas.scaleY = 0.6;
+				    myCanvas.validateNow();
+					
+					// Resize it
+		            myCanvas.height = pj.pageHeight;
+		            myCanvas.width = pj.pageWidth;
+					myCanvas.validateNow();	
+									
+					// Print it (do the -1 on rectangle to ensure you don't get background of canvas container, usually shown as a thin blue line)
+					pj.addPage(myCanvas as Sprite, new Rectangle(1, 1, (myCanvas.width * (1 / myCanvas.scaleX)) - 1, (myCanvas.height * (1 / myCanvas.scaleY)) - 1), po);
+					pj.send();
+					
+					// Scale it back again
+					myCanvas.scaleX = myScaleX;
+					myCanvas.scaleY = myScaleY;
+				    myCanvas.validateNow();
+				    
+					// Resize it back again
+					myCanvas.height = myHeight;
+					myCanvas.width = myWidth;
+					myCanvas.validateNow();		
+				}
+			}	
+			
+			private function doTour():void
+			{	
+				for each(var cityVo:CityDataVo in CityData.Capital) {
+					map.flyTo(cityVo.latlng, 7, new Attitude(35, 45, 0), 3);
+				}
+							
+			}
+			
+			
+		]]>
+	</fx:Script>
+	
+	<mx:Label x="10" y="10" text="Weather Map" fontSize="12" fontWeight="bold" color="#FFFFFF"/>
+
+	<mx:Button label="Print..." click="doCanvasPrint(map, mapCanvas, true)" right="456" top="10" height="22" width="100"/>
+	<mx:Canvas id="mapCanvas" borderStyle="solid" borderColor="#FFFFFF" left="10" right="10" top="38" bottom="10">
+		<maps:Map3D xmlns:maps="com.mapplus.maps.*"
+					id="map"
+		 			mapevent_mappreinitialize="map_onMapPreInitialize"
+		 			mapevent_mapready="map_onMapReady" top="0" bottom="0" left="0" right="0"/>
+	</mx:Canvas>
+	<mx:Label color="#FF0606" id="lblLoading" right="10" textAlign="right" top="12" width="196"/>
+	<mx:Button id="btnTour" label="飞行浏览" click="doTour()" right="564" top="10" height="22" width="100"/>
+	<s:Label x="15" y="15" text="MapPlus 3D DEMO" fontSize="16" fontWeight="bold"/>
+</s:Application>

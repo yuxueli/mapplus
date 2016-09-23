@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<actionScriptProperties analytics="false" mainApplicationPath="MapPlusDemo1.mxml" projectUUID="fe23cbc7-2b85-4c29-b375-bcb046cad340" version="10">
+  <compiler additionalCompilerArguments="-locale en_US" autoRSLOrdering="false" copyDependentFiles="true" flex3CompatMode="false" fteInMXComponents="false" generateAccessible="true" htmlExpressInstall="true" htmlGenerate="true" htmlHistoryManagement="true" htmlPlayerVersionCheck="true" includeNetmonSwc="false" outputFolderPath="bin-debug" removeUnusedRSL="true" sourceFolderPath="src" strict="true" targetPlayerVersion="0.0.0" useApolloConfig="false" useDebugRSLSwfs="true" verifyDigests="true" warn="true">
+    <compilerSourcePath/>
+    <libraryPath defaultLinkType="0">
+      <libraryPathEntry kind="4" path="">
+        <excludedEntries>
+          <libraryPathEntry kind="3" linkType="1" path="${PROJECT_FRAMEWORKS}/libs/flex.swc" useDefaultLinkType="false"/>
+        </excludedEntries>
+      </libraryPathEntry>
+      <libraryPathEntry kind="1" linkType="1" path="libs"/>
+      <libraryPathEntry kind="3" linkType="1" path="/MapPlusForAgs/bin/MapPlusForAgs.swc" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="1" linkType="1" path="${FLEXUNIT_LIB_LOCATION}/version4libs/Common/"/>
+      <libraryPathEntry kind="1" linkType="1" path="${FLEXUNIT_LIB_LOCATION}/version4libs/FlexProject/"/>
+      <libraryPathEntry kind="1" linkType="1" path="${FLEXUNIT_LOCALE_LOCATION}/version4locale/"/>
+      <libraryPathEntry kind="3" linkType="1" path="/MapPlusUtilityLibrary/bin/MapPlusUtilityLibrary.swc" useDefaultLinkType="false"/>
+      <libraryPathEntry kind="3" linkType="1" path="/MapPlus/bin/MapPlus.swc" useDefaultLinkType="false"/>
+    </libraryPath>
+    <sourceAttachmentPath/>
+  </compiler>
+  <applications>
+    <application path="ArcGISOnline.mxml"/>
+    <application path="MarkerOptionsPlayground.mxml"/>
+    <application path="MapPlusDemo1.mxml"/>
+    <application path="MapPlusDemo2.mxml"/>
+    <application path="NuclearPowerPlant.mxml"/>
+    <application path="MarkerManagerDemo.mxml"/>
+    <application path="MarkerClustererDemo.mxml"/>
+    <application path="test.mxml"/>
+    <application path="FGMapTianditu.mxml"/>
+  </applications>
+  <modules/>
+  <buildCSSFiles/>
+  <flashCatalyst validateFlashCatalystCompatibility="false"/>
+</actionScriptProperties>

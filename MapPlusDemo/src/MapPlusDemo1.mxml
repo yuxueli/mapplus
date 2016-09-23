@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Application xmlns:mx="http://www.adobe.com/2006/mxml"
+				layout="absolute">
+	<maps:Map xmlns:maps="com.mapplus.maps.*"
+			  id="map" 
+			  mapevent_mapready="onMapReady"
+			  width="100%"
+			  height="70%" sensor="false"/>
+	<mx:Script>
+		<![CDATA[
+			import com.customTileLayer.BaiduTileLayer;
+			import com.customTileLayer.LingtuTileLayer;
+			import com.customTileLayer.SogouTileLayer;
+			import com.mapplus.maps.controls.MapTypeControlOptions;
+			import com.mapplus.maps.InfoWindowOptions;
+			import com.mapplus.maps.LatLng;
+			import com.mapplus.maps.Map;
+			import com.mapplus.maps.MapEvent;
+			import com.mapplus.maps.MapMouseEvent;
+			import com.mapplus.maps.MapOptions;
+			import com.mapplus.maps.MapType;
+			import com.mapplus.maps.controls.MapTypeControl;
+			import com.mapplus.maps.controls.NavigationControl;
+			import com.mapplus.maps.controls.ZoomControl;
+			import com.mapplus.maps.extras.arcgislink.*;
+			import com.mapplus.maps.interfaces.*;
+			import com.mapplus.maps.overlays.Marker;
+			import com.mapplus.maps.controls.OverviewMapControl;
+			import com.mapplus.maps.controls.ScaleControl;
+			import com.customTileLayer.*;
+
+			
+			private function onMapPreInitialize(event:Event):void {
+//				//var url:String='http://202.102.112.27:9001/ArcGIS/rest/services/jiangyou/MapServer';
+//				
+//				//var url:String='http://202.102.112.27:9001/ArcGIS/rest/services/test/MapServer';
+//				var url:String='http://track.bnet.cn:8399/arcgis/rest/services/indsmap0302/MapServer';
+//				
+//				
+//				//var url:String='http://server.arcgisonline.com/ArcGIS/rest/services/ESRI_Imagery_World_2D/MapServer';
+//				
+//				var agsType:ArcGISMapType=new ArcGISMapType(url);
+//				
+//				//var tileLayers:Array = MapType.DEFAULT_MAP_TYPES;
+//				//tileLayers.push(agsType);	//地图类型
+//				
+//				var opts:MapOptions=new MapOptions({mapTypes: [agsType], center: new LatLng(-66.182,162.2237), zoom: 9});
+//				
+//				
+//				map.setInitOptions(opts);
+			}
+			
+			private function onMapReady(event:Event):void {
+//				map.enableScrollWheelZoom();
+//				map.addControl(new MapTypeControl());
+//				map.addControl(new NavigationControl());
+//				map.addControl(new ScaleControl());	//比例控件是用于指示当前地图的分辨率和缩放级别的可视指示器。
+//				map.addControl(new OverviewMapControl());//鹰眼图
+//				//map.addMapType(MapType.QQ_MAP_TYPE);
+//				
+//				var normalMapType:IMapType = MapType.NORMAL_MAP_TYPE				
+//				map.addMapType(normalMapType);
+				
+				
+				map.setCenter(new LatLng(32.0811,118.7722),9);
+				map.addControl(new MapTypeControl());
+				map.addControl(new NavigationControl());
+				map.addControl(new ScaleControl());
+				map.addControl(new OverviewMapControl());//鹰眼图
+				map.enableContinuousZoom();
+				map.enableScrollWheelZoom();
+				map.enableControlByKeyboard();
+				
+				//百度
+				var normalMapType:IMapType = MapType.NORMAL_MAP_TYPE; //定义一个地图类型
+				var tileLayers:Array = new Array();
+				
+				
+				
+				/*
+				tileLayers.push(new BaiduTileLayer(normalMapType.getTileSize())); //地图类型
+				var BaiduMapType:IMapType = new MapType(tileLayers,normalMapType.getProjection(),"百度地图");//创建自己的地图类型
+				map.addMapType(BaiduMapType); //增加到地图上
+				//灵图
+				tileLayers.push(new LingtuTileLayer(normalMapType.getTileSize())); //地图类型
+				var LingtuMapType:IMapType = new MapType(tileLayers,normalMapType.getProjection(),"51地图");//创建自己的地图类型
+				map.addMapType(LingtuMapType); //增加到地图上
+
+				//搜狗
+				tileLayers.push(new SogouTileLayer(normalMapType.getTileSize())); //地图类型
+				var SogouMapType:IMapType = new MapType(tileLayers,normalMapType.getProjection(),"搜狗地图");//创建自己的地图类型
+				map.addMapType(SogouMapType); //增加到地图上
+				*/
+				//阿里
+				tileLayers.push(new AliMapTileLayer(normalMapType.getTileSize())); //地图类型
+				var AliMapType:IMapType = new MapType(tileLayers,normalMapType.getProjection(),"阿里地图");//创建自己的地图类型
+				map.addMapType(AliMapType); //增加到地图上
+				
+				//var tiledjiangyou:String='http://202.102.112.27:9001/ArcGIS/rest/services/jiangyou/MapServer';
+				var tiled:String='http://track.bnet.cn:8399/arcgis/rest/services/indsmap0302/MapServer';
+				var tiledjs:String='http://202.102.112.27:9001/ArcGIS/rest/services/jiangsu/MapServer';
+
+				
+				//map.wrapper.
+				//添加并设为默认地图
+				ArcGISUtil.addArcGISMap(map, tiled, null,"集团地图");
+				
+				ArcGISUtil.addArcGISMap(map, tiledjs, function(res:ArcGISMapType):void {
+					map.setMapType(res);
+				},"鸿信地图");
+				
+				//ArcGISUtil.addArcGISMap(map, tiled,null,"集团地图");
+				//ArcGISUtil.addArcGISMap(map, tiledjs, null,'鸿信地图');
+				
+				
+				var normalMapType:IMapType = MapType.NORMAL_MAP_TYPE;	//定义一个地图类型
+				var tileLayers:Array = new Array();
+				tileLayers.push(new SuperMapTileLayer(normalMapType.getTileSize()));	//地图类型
+				var MyMapType:IMapType = new MapType(tileLayers,normalMapType.getProjection(),"超图地图");//创建自己的地图类型
+				map.addMapType(MyMapType);	//增加到地图上
+				
+				//map.setMapType(BaiduMapType);
+				
+				
+				
+				map.addEventListener(MapMouseEvent.CLICK,function(e:MapMouseEvent):void {
+					map.clearOverlays();
+					var marker:Marker = new Marker(e.latLng);
+					map.addOverlay(marker);
+					var infoOptions:InfoWindowOptions = new InfoWindowOptions();
+					infoOptions.title = "我的坐标是";
+					infoOptions.content = e.latLng.toUrlValue(4);
+					marker.openInfoWindow(infoOptions);
+				});
+		}
+		]]>
+	</mx:Script>
+</mx:Application>
